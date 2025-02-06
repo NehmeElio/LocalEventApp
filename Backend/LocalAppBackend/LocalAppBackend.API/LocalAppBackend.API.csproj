@@ -4,10 +4,15 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AutoMapper" Version="13.0.1" />
+        <PackageReference Include="DataC.CoreApi" Version="8.0.0.21" />
+        <PackageReference Include="Elio.Logging" Version="1.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1"/>
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
         <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="7.2.0" />
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="7.2.0" />
@@ -17,6 +22,12 @@
     <ItemGroup>
       <ProjectReference Include="..\LocalAppBackend.Application\LocalAppBackend.Application.csproj" />
       <ProjectReference Include="..\LocalAppBackend.Infrastructure\LocalAppBackend.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

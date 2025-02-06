@@ -1,3 +1,6 @@
+
+
+using LocalAppBackend.API.Filters;
 using Microsoft.OpenApi.Models;
 
 namespace LocalAppBackend.API.Configurations;
@@ -7,7 +10,7 @@ public static class SwaggerConfiguration
     public static IServiceCollection AddSwaggerGenConfiguration(this IServiceCollection services)
     {
         services.AddSwaggerGen(c =>
-        {
+        {       c.OperationFilter<SwaggerFileUploadOperationFilter>(); // Enable file uploads
             // Add JWT Authorization in Swagger
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

@@ -1,106 +1,125 @@
 using LocalAppBackend.Application.Interface;
 using LocalAppBackend.Domain.Models;
-using LocalEventBackebd.Infrastructure.Context;
+using LocalEventBackend.Infrastructure.Context;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace LocalAppBackend.Application.Services;
 
- public class AccountService : IAccountService
-    {
-        private readonly LocalEventContext _context;
-        private readonly ILogger<AccountService> _logger;
+ public class AccountService(LocalEventContext context, ILogger<AccountService> logger) : IAccountService
+ {
+     
+     public async Task<(bool Success, string? ErrorMessage)> RegisterUserAsync(string username, string password, string email, string fname, string lname, string phoneNumber)
+     {
+         logger.LogInformation($"Registering user {username}");
 
-        public AccountService(LocalEventContext context, ILogger<AccountService> logger)
+         var existingUser = await context.Accounts
+             .FirstOrDefaultAsync(u => u.Username == username || u.Email == email || (u.PhoneNb != null && u.PhoneNb == phoneNumber));
+
+         if (existingUser != null)
+         {
+             if (existingUser.Username == username)
+                 return (false, "Username is already taken.");
+        
+             if (existingUser.Email == email)
+                 return (false, "Email is already registered.");
+        
+             if (!string.IsNullOrEmpty(phoneNumber) && existingUser.PhoneNb == phoneNumber)
+                 return (false, "Phone number is already in use.");
+         }
+         
+    
+         var newUser = new Account()
+         {
+             Username = username,
+             Email = email,
+             Password = password,//we should hash but for testing will keep it this way
+             Name = fname,
+             Lastname = lname,
+             PhoneNb = phoneNumber,
+             CreatedAt = DateOnly.FromDateTime(DateTime.Now)
+         };
+
+         context.Accounts.Add(newUser);
+         await context.SaveChangesAsync();
+
+         logger.LogInformation("User {Username} registered successfully.", username);
+    
+         return (true, null);
+     }
+
+
+     public async Task<bool> AuthenticateUserAsync(string username, string password)
         {
-            _context = context;
-            _logger = logger;
-        }
-
-        public async Task RegisterUserAsync(string username, string password, string email,string fname,string lname)
-        {
-            var existingUser = await _context.Accounts
-                .FirstOrDefaultAsync(u => u.Name == username || u.Email == email);
-            
-            if (existingUser != null)
-            {
-                throw new InvalidOperationException("Username or email is already taken.");
-            }
-
-            //var passwordHash = HashPassword(password);
-            var passwordHash = password;
-            var newUser = new Account()
-            {
-                Username = username,
-                Email = email,
-                Password = passwordHash,
-                Name = fname,
-                Lastname = lname
-            };
-
-            _context.Accounts.Add(newUser);
-            await _context.SaveChangesAsync();
-            _logger.LogInformation("User {Username} registered successfully.", username);
-        }
-
-        public async Task<bool> AuthenticateUserAsync(string username, string password)
-        {
-            var user = await _context.Accounts.FirstOrDefaultAsync(u => u.Username == username);
-            if (user == null || user.Password != password)
-            {
-                return false;
-            }
-            return true;
+            logger.LogInformation($"Authenticating user {username}");
+            var user = await context.Accounts.FirstOrDefaultAsync(u => u.Username == username);
+            return user != null && user.Password == password;
             /*if (user == null || !VerifyPassword(password, user.PasswordHash))
             {
                 return false;
             }*/
 
-            return true;
+           // return true;
         }
 
-        /*private string HashPassword(string password)
+        public async Task<Account?> GetUserByUsername(string username)
         {
-            // Use a static salt (hardcoded)
-            byte[] staticSalt = Convert.FromBase64String("STATIC_SALT_VALUE"); 
-
-            // Hash the password using PBKDF2
-            var hashed = System.Security.Cryptography.KeyDerivation.Pbkdf2(
-                password: password,
-                salt: staticSalt,
-                prf: System.Security.Cryptography.KeyDerivationPrf.HMACSHA256,
-                iterationCount: 10000,
-                numBytesRequested: 256 / 8
-            );
-
-            // Return the hashed password as a Base64 string
-            return Convert.ToBase64String(hashed);
+            var user=await context.Accounts.FirstOrDefaultAsync(u=>u.Username == username);
+            return user;
         }
         
-        private bool VerifyPassword(string password, string storedHash)
+        public async Task<bool> UploadProfilePicture(IFormFile? file, int userId)
         {
-            // Use the same static salt for verification
-            byte[] staticSalt = Convert.FromBase64String("STATIC_SALT_VALUE"); // Replace with the same Base64-encoded static salt
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return false;
+                }
 
-            // Hash the input password using the same salt
-            var hashedPassword = System.Security.Cryptography.KeyDerivation.Pbkdf2(
-                password: password,
-                salt: staticSalt,
-                prf: System.Security.Cryptography.KeyDerivationPrf.HMACSHA256,
-                iterationCount: 10000,
-                numBytesRequested: 256 / 8
-            );
+                // Convert the file to a byte array
+                using var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+                byte[] profilePicData = memoryStream.ToArray();
 
-            // Compare the hashed password with the stored hash
-            return storedHash == Convert.ToBase64String(hashedPassword);
+                // Find the user by userId
+                var user = await context.Accounts
+                    .FirstOrDefaultAsync(u => u.AccountId == userId);
+
+                if (user == null)
+                {
+                    return false;
+                }
+
+                // Set the profile picture as byte array
+                user.ProfilePicture= profilePicData;
+
+                // Save the changes to the database
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
+    
 
-
-        private bool VerifyPassword(string password, string storedHash)
+        public async Task<byte[]> GetProfilePictureAsync(int userId)
         {
-            // Implement password verification logic using the same hashing method
-            return storedHash == HashPassword(password);
-        }*/
+            var user = await context.Accounts.FindAsync(userId);
+        
+            if (user == null || user.ProfilePicture == null)
+            {
+                throw new KeyNotFoundException("User or profile picture not found.");
+            }
+
+            return user.ProfilePicture;  // Return the raw byte array
+        }
+ }
+
+    
        
-    }
+    

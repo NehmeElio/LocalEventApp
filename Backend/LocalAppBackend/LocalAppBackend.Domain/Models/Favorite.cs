@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace LocalAppBackend.Domain.Models;
 
-public partial class EventGuest
+public partial class Favorite
 {
-    public int EventGuestId { get; set; }
-
-    public int? EventId { get; set; }
+    public int FavoriteId { get; set; }
 
     public int? AccountId { get; set; }
+
+    public int? EventId { get; set; }
 
     public virtual Account? Account { get; set; }
 

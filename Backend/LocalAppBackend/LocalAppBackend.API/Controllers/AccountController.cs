@@ -1,6 +1,7 @@
+using AutoMapper;
 using LocalAppBackend.API.DTO;
 using LocalAppBackend.Application.Interface;
-using LocalEventBackebd.Infrastructure.Authentication;
+using LocalEventBackend.Infrastructure.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,34 +13,34 @@ public class AccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IMapper _mapper;
+    private readonly ILogger<AccountController> _logger;
     
 
-    public AccountController(IAccountService accountService, IJwtTokenService jwtTokenService)
+    public AccountController(IAccountService accountService, IJwtTokenService jwtTokenService, IMapper mapper, ILogger<AccountController> logger)
     {
         _accountService = accountService;
         _jwtTokenService = jwtTokenService;
+        _mapper = mapper;
+        _logger = logger;
     }
 
     // POST: api/Account/Register
     [HttpPost("Register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> RegisterUserAsync([FromBody] RegisterRequest request)
     {
-        try
+        var (success, errorMessage) = await _accountService.RegisterUserAsync(
+            request.Username, request.Password, request.Email, request.FirstName, request.LastName, request.PhoneNumber
+        );
+       // (string username, string password, string email, string fname, string lname, string phoneNumber)
+        if (!success)
         {
-            await _accountService.RegisterUserAsync(
-                request.Username, 
-                request.Password, 
-                request.Email, 
-                request.FirstName, 
-                request.LastName
-            );
-            return Ok(new { Message = "User registered successfully" });
+            return Conflict(new { message = errorMessage }); // 409 Conflict
         }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { Error = ex.Message });
-        }
+
+        return Ok(new { message = "User registered successfully." }); // 200 OK
     }
+
 
     // POST: api/Account/Login
     [HttpPost("Login")]
@@ -51,14 +52,59 @@ public class AccountController : ControllerBase
             return Unauthorized(new { Error = "Invalid username or password" });
         }
         
-        var token = _jwtTokenService.GenerateToken(request.Username);
+        var user=await _accountService.GetUserByUsername(request.Username);
+        var userDto = _mapper.Map<UserDto>(user);
+        
+        var token = _jwtTokenService.GenerateToken(request.Username,userDto.AccountId);
 
-        return Ok(new { Token = token });
+        return Ok(new
+        {
+            Token = token,
+            user=userDto
+        });
     }
+
     [Authorize]
-    [HttpGet("hello")]
-    public IActionResult GetHelloWorld()
+    [HttpPost("UploadProfilePicture")]
+    public async Task<IActionResult> UploadProfilePicture([FromForm] UploadProfileRequest request)
     {
-        return Ok("Hello, world!");
+        if (request.ProfilePicture == null || request.ProfilePicture.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
+
+        var result = await _accountService.UploadProfilePicture(request.ProfilePicture,request.UserId);
+
+        if (result)
+        {
+            return Ok("Profile picture uploaded successfully.");
+        }
+        else
+        {
+            return StatusCode(500, "An error occurred while uploading the profile picture.");
+        }
     }
+
+    [Authorize]
+    [HttpGet("GetProfilePicture")]
+    public async Task<IActionResult> GetProfilePicture(int accountId)
+    {
+        try
+        {
+            var profilePic = await _accountService.GetProfilePictureAsync(accountId);
+
+            return File(profilePic, "image/png");
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound("User not found.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving profile picture.");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+
 }

@@ -1,6 +1,6 @@
-namespace LocalEventBackebd.Infrastructure.Authentication;
+namespace LocalEventBackend.Infrastructure.Authentication;
 
 public interface IJwtTokenService
 {
-    string GenerateToken(string username);
+    string GenerateToken(string username,int accountId);
 }

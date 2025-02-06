@@ -1,10 +1,18 @@
 namespace LocalAppBackend.API.DTO;
 
-public class RegisterRequest
+public class RegisterRequest(
+    string username,
+    string password,
+    string email,
+    string firstName,
+    string lastName,
+    string phoneNumber)
 {
-    public string Username { get; set; }
-    public string Password { get; set; }
-    public string Email { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
+    public string Username { get; set; } = username;
+    public string Password { get; set; } = password;
+    public string Email { get; set; } = email;
+    public string FirstName { get; set; } = firstName;
+    public string LastName { get; set; } = lastName;
+
+    public string PhoneNumber { get; set; } = phoneNumber;
 }

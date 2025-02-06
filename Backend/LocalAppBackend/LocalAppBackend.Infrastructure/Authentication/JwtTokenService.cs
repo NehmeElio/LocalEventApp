@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
-namespace LocalEventBackebd.Infrastructure.Authentication;
+namespace LocalEventBackend.Infrastructure.Authentication;
 
 public class JwtTokenService:IJwtTokenService
 {
@@ -16,7 +16,7 @@ public class JwtTokenService:IJwtTokenService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public string GenerateToken(string username)
+    public string GenerateToken(string username,int accountId)
     {
         var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
         var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
@@ -25,14 +25,15 @@ public class JwtTokenService:IJwtTokenService
         {
             new Claim(JwtRegisteredClaimNames.Sub, username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.Name, username)
+            new Claim(ClaimTypes.Name, username),
+            new Claim("AccountId", accountId.ToString())
         };
 
         var token = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryInMinutes),
+            expires: DateTime.MaxValue,
             signingCredentials: signingCredentials
         );
 

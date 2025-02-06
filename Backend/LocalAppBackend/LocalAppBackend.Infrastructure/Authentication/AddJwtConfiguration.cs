@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace LocalEventBackebd.Infrastructure.Authentication;
+namespace LocalEventBackend.Infrastructure.Authentication;
 
 public static class AddJwtConfiguration
 {
