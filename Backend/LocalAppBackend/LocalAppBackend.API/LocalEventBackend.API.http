@@ -1,0 +1,6 @@
+@LocalEventBackend.API_HostAddress = http://localhost:5246
+
+GET {{LocalEventBackend.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
