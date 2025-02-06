@@ -31,6 +31,7 @@ class _SignUpPageState extends State<SignUpPage> {
   String? _lastNameError;
   String? _errorMessage;
   bool _isLoading = false;
+  bool _registrationSuccessful=false;
 
   @override
   void dispose() {
@@ -42,8 +43,9 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
-  void _signUp() async {
+  Future<bool> _signUp() async {
     setState(() {
+      _registrationSuccessful=false;
       _emailError = null;
       _usernameError = null;
       _passwordError = null;
@@ -110,7 +112,10 @@ class _SignUpPageState extends State<SignUpPage> {
         _phoneNumberError != null ||
         _passwordError != null ||
         _confirmPasswordError != null) {
-      return;
+      setState(() {
+        _isLoading = false;
+      });
+      return false;
     }
 
     final authService = AuthService();
@@ -119,7 +124,10 @@ class _SignUpPageState extends State<SignUpPage> {
     );
     setState(() {
       _isLoading = false;
+      _registrationSuccessful=_errorMessage==null;
     });
+    return _registrationSuccessful;
+
     // Proceed with the API call for user registration (e.g., send the data to the backend)
     // Implement your registration logic here.
     //make sure username email and phone numbers are unique, phone number is not mandatory
@@ -425,6 +433,19 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     ),
                   // Sign Up Button
+
+                  if (_registrationSuccessful)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        'User registered successfully',
+                        style: TextStyle(
+                            color: Colors.deepOrange,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    ),
                   ElevatedButton(
                     onPressed: () {
                       _isLoading ? null : _signUp();

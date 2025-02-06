@@ -64,7 +64,7 @@ class SideMenu extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(Icons.group, color: iconColor),
-            title: Text('Participating Events', style: TextStyle(color: textColor)),
+            title: Text('Upcoming Events', style: TextStyle(color: textColor)),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => UpcomingEventPage(regions: regions,)),

@@ -14,7 +14,7 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
@@ -22,7 +22,7 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -33,12 +33,12 @@ class _SignInPageState extends State<SignInPage> {
       _errorMessage = null;
     });
 
-    final email = _emailController.text;
+    final username = _usernameController.text;
     final password = _passwordController.text;
 
     // Call the login method from AuthService
     AuthService authService = AuthService();
-    final token = await authService.login(email, password);
+    final token = await authService.login(username, password);
 
     setState(() {
       _isLoading = false;
@@ -80,13 +80,13 @@ class _SignInPageState extends State<SignInPage> {
 
                   // Email Input Field
                   TextField(
-                    controller: _emailController,
+                    controller: _usernameController,
                     keyboardType: TextInputType.emailAddress,
                     style: fadedTextStyle,
                     decoration: InputDecoration(
                       labelText: 'Email',
                       labelStyle: fadedTextStyle,
-                      hintText: 'Enter your email',
+                      hintText: 'Enter your username',
                       hintStyle: fadedTextStyle.copyWith(color: Colors.white54),
                       filled: true,
                       fillColor: Colors.black.withOpacity(0.2),

@@ -34,7 +34,7 @@ class _UpcomingEventPageState extends State<UpcomingEventPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("My Events"),
+        title: Text("Upcoming Events"),
       ),
       body: FutureBuilder<List<Event>?>(
         future: events, // The future that fetches events
