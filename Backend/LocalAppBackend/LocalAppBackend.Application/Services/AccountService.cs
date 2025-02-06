@@ -37,7 +37,7 @@ namespace LocalAppBackend.Application.Services;
              Password = password,//we should hash but for testing will keep it this way
              Name = fname,
              Lastname = lname,
-             PhoneNb = phoneNumber,
+             PhoneNb = phoneNumber.Length==0?null:phoneNumber,
              CreatedAt = DateOnly.FromDateTime(DateTime.Now)
          };
 
