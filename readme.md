@@ -4,7 +4,7 @@
 
 The APK file is available for download to test the mobile application with the hosted backend and database.
 
-**Important:** The APK file will be automatically deleted on February 24.
+**Important:** The database will be automatically deleted on February 24 by Render.
 
 ## 🗄️ Database Backup
 
